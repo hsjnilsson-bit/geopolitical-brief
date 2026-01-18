@@ -174,8 +174,8 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         pass
 def run_health_check_server():
-    server = HTTPServer(('0.0.0.0', 10000), HealthCheckHandler)
-    server.serve_forever()
+    port = int(os.environ.get('PORT', 10000))
+server = HTTPServer(('0.0.0.0', port), HealthCheckHandler)
 
 if __name__ == "__main__":
     # Start health check server in background
