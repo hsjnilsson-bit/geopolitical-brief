@@ -8,6 +8,9 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import time
 import schedule
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import threading
+
 
 GMAIL_USER = os.environ.get('GMAIL_USER')
 GMAIL_PASSWORD = os.environ.get('GMAIL_PASSWORD')
@@ -162,7 +165,23 @@ def run_scheduler():
         schedule.run_pending()
         time.sleep(60)
 
+class HealthCheckHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/plain')
+        self.end_headers()
+        self.wfile.write(b'OK')
+    def log_message(self, format, *args):
+        pass
+def run_health_check_server():
+    server = HTTPServer(('0.0.0.0', 10000), HealthCheckHandler)
+    server.serve_forever()
+
 if __name__ == "__main__":
+    # Start health check server in background
+    health_thread = threading.Thread(target=run_health_check_server, daemon=True)
+    health_thread.start()
+    
     print("Running initial brief...")
     generate_and_send_brief()
     run_scheduler()
